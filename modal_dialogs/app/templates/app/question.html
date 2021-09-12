@@ -1,0 +1,26 @@
+
+{% extends 'app/base.html' %}
+
+{% block content %}
+<h1>{{question}}</h1>
+<form method="POST" action="{% url 'question-detail' question.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="question_type" value="{{question.type}}">
+    {% for option in question.get_options %}
+        <input type="{{question.type}}" id="{{option.pk}}" name="answer" value="{{option.text}}">
+        {% if question.type != 'text'%}
+        <label for="{{option.pk}}">{{option.text}}</label>
+        {% endif %}
+    {% endfor %}
+
+    <button>Submit</button>
+    </form>
+
+{% if question.pk < 3%}
+<p><a href="{% url 'question-detail' question.pk|add:'1' %}">Next Question</a></p>
+{% endif %}
+<p><a href="{% url 'home' %}">Home</a></p>
+    {% if score is not None %}
+        <div class="alert alert-info">You got {{score}}</div>
+    {% endif %}
+{% endblock %}
