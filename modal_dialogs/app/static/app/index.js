@@ -1,7 +1,9 @@
 const root = document.getElementById("root");
 // const questionBody = document.getElementById('question1');
 const submitQuizBtn = document.getElementById("submitQuiz");
+const timeLimit = 6;
 let totalScore = 0;
+let submitedAnswers = [];
 
 // const questions = fetch('http://127.0.0.1:8000/questions')
 //                     .then(response => response.json())
@@ -44,10 +46,11 @@ async function main() {
     });
 
     // get the results
-    const submitBtn = document.getElementById(`submit-${index + 1}`);
+    const autoBtn = document.getElementById(`auto-${index + 1}`);
 
     formBody.addEventListener("submit", async (event) => {
       event.preventDefault();
+      submitedAnswers.push(index + 1);
       const formData = new FormData(formBody);
       const userAnswer = formData.getAll(question.id);
       const requestData = [{ question_id: question.id, answers: userAnswer }];
@@ -55,9 +58,12 @@ async function main() {
       const resultResponse = await getResult(requestData).then((data) => {
         const score = data.Score;
         totalScore += score;
+
         alert(`Your score ${score}`);
         // root.innerHTML = `Your score ${score}`;
+        autoBtn.click();
       });
+      // show the total score
       index === 2
         ? setTimeout(() => {
             alert(`Your total score: ${totalScore}`);
@@ -102,23 +108,38 @@ async function getQeustion(questionId) {
 const timers = document.querySelectorAll(".timer");
 
 for (let i = 0; i < 3; i++) {
-  const submitBtn = document.getElementById(`submit-${i}`);
-  const nextBtn = document.getElementById(`submit-${i + 1}`);
+  const autoBtn = document.getElementById(`auto-${i}`);
+  const nextBtn = document.getElementById(`auto-${i + 1}`);
+  const submitBtn = document.getElementById(`submit-${i + 1}`);
   //   console.log(submitBtn);
-  let seconds = 5;
+  let seconds = timeLimit;
 
-  submitBtn.addEventListener("click", (e) => {
+  autoBtn.addEventListener("click", (e) => {
     const timer = setInterval(() => {
       timers[i].innerHTML = seconds;
 
-      seconds -= 1;
+      
       if (seconds === 0) {
-        nextBtn.click();
+        // do not show the time up alert for submited answers
+        if (!submitedAnswers.includes(i + 1)){
+          alert(`Time Up! Your score: 0`);
+          nextBtn.click();
+
+          if(i === 2){
+          // if the user does not answer the last question, show the total score
+          alert(`Total Score: ${totalScore}`)
+          // reload the page to remove previous inputs
+          setTimeout(() => location.reload(), 300);
+          }
+        }
         clearInterval(timer);
-        seconds += 5;
+        seconds += timeLimit;
       }
+      // deduct 1 second
+      seconds -= 1;
     }, 1000);
   });
 }
 
+// call the main function
 main();
